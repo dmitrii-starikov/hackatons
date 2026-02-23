@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en-us">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Убежище 87</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .bunker-background-image {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: url('close.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            z-index: 0;
+            transition: transform 1s ease, filter 1s ease;
+        }
+
+        body.zoomed .bunker-background-image {
+            transform: scale(3);
+            filter: brightness(0.6) blur(2px);
+        }
+
+        .door-area {
+            position: fixed;
+            top: 25%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 35%;
+            height: 60%;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .keypad-area {
+            position: fixed;
+            top: 50%;
+            right: 10%;
+            transform: translateY(-50%);
+            width: 18%;
+            height: 45%;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .pin-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .pin-modal.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .pin-container {
+            background: #2a2a2a;
+            border: 4px solid #4a4a4a;
+            border-radius: 15px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+        }
+
+        .pin-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .pin-header h2 {
+            color: #fff;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .pin-header p {
+            color: #aaa;
+            font-size: 0.9em;
+        }
+
+        .pin-display {
+            background: #000;
+            border: 3px solid #3a3a3a;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pin-digits {
+            font-family: 'Courier New', monospace;
+            font-size: 3em;
+            font-weight: bold;
+            color: #0f0;
+            text-shadow: 0 0 10px #0f0;
+            letter-spacing: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .pin-digits .digit {
+            min-width: 40px;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .pin-digits .digit.empty {
+            color: #030;
+            text-shadow: none;
+        }
+
+        .pin-digits .digit.filled {
+            animation: digitPulse 0.3s ease;
+        }
+
+        @keyframes digitPulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.3);
+                color: #0ff;
+            }
+        }
+
+        .pin-keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .pin-keypad button {
+            background: #3a3a3a;
+            border: 3px solid #5a5a5a;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 2em;
+            font-weight: bold;
+            padding: 25px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .pin-keypad button:hover {
+            background: #4a4a4a;
+            border-color: #6a6a6a;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .pin-keypad button:active {
+            transform: translateY(0) scale(0.95);
+            background: #2a2a2a;
+        }
+
+        .pin-keypad .zero-btn {
+            grid-column: 2;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: #3a3a3a;
+            border: 2px solid #5a5a5a;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 1.5em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .close-btn:hover {
+            background: #4a4a4a;
+            border-color: #6a6a6a;
+            transform: rotate(90deg);
+        }
+
+        .output {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .pin-container {
+                padding: 20px;
+            }
+
+            .pin-digits {
+                font-size: 2em;
+                letter-spacing: 10px;
+            }
+
+            .pin-keypad button {
+                padding: 20px;
+                font-size: 1.5em;
+            }
+        }
+    </style>
+    <script>
+        let enteredDigits = [];
+        const MAX_DIGITS = 7;
+        let doorOpened = false;
+
+        // Removed explicit correct code and verify logic. 
+        // Logic is now entirely handled by WASM via console.log hooks.
+
+        function log_to_console(value) {
+            if (doorOpened) return;
+
+            enteredDigits.push(value);
+            updateDisplays();
+
+            // Direct call to console.log, which should be hooked by WASM
+            console.log(value);
+
+            if (enteredDigits.length > MAX_DIGITS) {
+                // Simple UI reset if too many digits, though WASM handles the logic
+                // WASM should call hello() to reset its internal state on failure
+                // but UI needs to clear potentially.
+                // Ideally WASM would call back to clear UI, but for now we just clear logic
+                // locally if it overflows visual max.
+                enteredDigits = [];
+                updateDisplays();
+            }
+        }
+
+        function updateDisplays() {
+            const largeDisplay = document.getElementById('pin-digits');
+            if (largeDisplay) {
+                largeDisplay.innerHTML = '';
+                for (let i = 0; i < MAX_DIGITS; i++) {
+                    const span = document.createElement('span');
+                    span.className = 'digit empty';
+                    if (i < enteredDigits.length) {
+                        span.textContent = enteredDigits[i];
+                        span.className = 'digit filled';
+                    } else {
+                        span.textContent = '•';
+                    }
+                    largeDisplay.appendChild(span);
+                }
+            }
+        }
+
+        function openPinModal() {
+            const body = document.body;
+            const modal = document.getElementById('pin-modal');
+            body.classList.add('zoomed');
+            modal.classList.add('active');
+            updateDisplays();
+        }
+
+        function closePinModal() {
+            const body = document.body;
+            const modal = document.getElementById('pin-modal');
+            body.classList.remove('zoomed');
+            modal.classList.remove('active');
+            // reset digits on close
+            enteredDigits = [];
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            updateDisplays();
+            // Important: WASM must load and initialize hook on console.log
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closePinModal();
+            }
+        });
+    </script>
+</head>
+
+<body>
+    <div class="bunker-background-image"></div>
+    <div class="door-area" onclick="openPinModal()"></div>
+    <div class="keypad-area" onclick="openPinModal()"></div>
+
+    <div class="pin-modal" id="pin-modal">
+        <div class="pin-container">
+            <div class="close-btn" onclick="closePinModal()">×</div>
+            <div class="pin-header">
+                <h2>Enter PIN Code</h2>
+                <p>Enter the correct 7-digit combination</p>
+            </div>
+            <div class="pin-display">
+                <div class="pin-digits" id="pin-digits"></div>
+            </div>
+            <div class="pin-keypad">
+                <button onclick="log_to_console(1)">1</button>
+                <button onclick="log_to_console(2)">2</button>
+                <button onclick="log_to_console(3)">3</button>
+                <button onclick="log_to_console(4)">4</button>
+                <button onclick="log_to_console(5)">5</button>
+                <button onclick="log_to_console(6)">6</button>
+                <button onclick="log_to_console(7)">7</button>
+                <button onclick="log_to_console(8)">8</button>
+                <button onclick="log_to_console(9)">9</button>
+                <button onclick="log_to_console(0)" class="zero-btn">0</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="output" id="output"></div>
+
+    <script>
+        var Module = {
+            print: (function () {
+                var element = document.getElementById('output');
+                return function (text) {
+                    element.innerHTML += text + "<br>";
+                    element.scrollTop = element.scrollHeight;
+                };
+            })(),
+            printErr: function (text) {
+                if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+                if (0) {
+                    dump(text + '\n');
+                }
+            }
+        };
+    </script>
+    <script async type="text/javascript" src="index.js"></script>
+</body>
+
+</html>

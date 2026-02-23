@@ -1,0 +1,17 @@
+Found PIN: 0000
+Response: HTTP/1.1 400 Bad Request
+Server: nginx/1.29.5
+Date: Sat, 07 Feb 2026 11:43:11 GMT
+Content-Type: text/html
+Content-Length: 157
+Connection: close
+
+<html>
+<head><title>400 Bad Request</title></head>
+<body>
+<center><h1>400 Bad Request</h1></center>
+<hr><center>nginx/1.29.5</center>
+</body>
+</html>
+
+Done
