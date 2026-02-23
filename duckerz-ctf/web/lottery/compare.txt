@@ -1,0 +1,32 @@
+bot@linux:~/PycharmProjects/hackatons/duckerz-ctf/web/lottery$ python3 compare.py
+[*] Test 1: Same user, same ticket?
+First login: ticket-7855ee82
+Second login: ticket-7855ee82
+Same ticket: True
+
+[*] Test 2: Ticket based on username?
+test_user_0: ticket-287236f3
+  MD5(username)[:8]: 8ed1ac76
+  Match: False
+
+test_user_1: ticket-1b37b98b
+  MD5(username)[:8]: 738f2f95
+  Match: False
+
+test_user_2: ticket-55d531d3
+  MD5(username)[:8]: 7786ecae
+  Match: False
+
+test_user_3: ticket-41f7cbd1
+  MD5(username)[:8]: bda1dabe
+  Match: False
+
+test_user_4: ticket-01b33d58
+  MD5(username)[:8]: 0b57ca11
+  Match: False
+
+[*] Test 3: Multiple logins for same user
+Attempt 1: ticket-74976d37
+Attempt 2: ticket-74976d37
+Attempt 3: ticket-74976d37
+All same: True
