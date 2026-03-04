@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block content %}
+{% if error %}
+    <h1>ERROR</h1>
+    <p>{{ error }}</p>
+    <p><a href="{{ url_for('login_page') }}">back to login</a></p>
+{% else %}
+    <h1>CAT: {{ username }}</h1>
+    
+    {% if is_admin and flag %}
+    <div style="border: 3px solid #000; padding: 20px; margin: 20px 0; background: #f5f5f5;">
+        <h2>ADMIN PANEL</h2>
+        <p style="font-weight: bold; font-family: 'Courier New', monospace; word-break: break-all;">{{ flag }}</p>
+    </div>
+    {% endif %}
+    
+    <div style="font-family: monospace; font-size: 12px; line-height: 1.2; margin: 20px 0; border: 2px solid #000; padding: 15px; overflow-x: auto;">
+        <pre style="margin: 0; white-space: pre;">{{ ascii_cat }}</pre>
+    </div>
+    <h2>STATS</h2>
+    <p>COINS: <strong id="coinsDisplay">{{ coins }}</strong></p>
+    <p>LEVEL: <strong>{{ cat_level }}</strong></p>
+    <p>HAPPINESS: <strong>{{ cat_happiness }}/100</strong></p>
+    
+    <h2>SKILLS</h2>
+    <p>STRENGTH: <strong>{{ cat_strength }}</strong> <button onclick="upgradeStat('strength')" style="margin-left: 10px;">+50</button></p>
+    <p>SPEED: <strong>{{ cat_speed }}</strong> <button onclick="upgradeStat('speed')" style="margin-left: 10px;">+50</button></p>
+    <p>INTELLIGENCE: <strong>{{ cat_intelligence }}</strong> <button onclick="upgradeStat('intelligence')" style="margin-left: 10px;">+50</button></p>
+    <p>HAPPINESS: <strong>{{ cat_happiness }}/100</strong> <button onclick="upgradeStat('happiness')" style="margin-left: 10px;">+30</button></p>
+    
+    <button id="farmBtn" onclick="farmCoins()" style="width: 100%; margin-top: 20px; padding: 15px;">FARM COINS</button>
+    <p id="farmInfo" style="text-align: center; margin-top: 10px;"></p>
+    
+    <p style="margin-top: 30px; text-align: center;"><a href="{{ url_for('logout_page') }}">logout</a></p>
+{% endif %}
+
+<script>
+    let farmTimeout = null;
+    let lastFarmTime = 0;
+    
+    function getAuthToken() {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            const [name, value] = cookie.trim().split('=');
+            if (name === 'token') return value;
+        }
+        return null;
+    }
+    
+    function updateFarmButton() {
+        const btn = document.getElementById('farmBtn');
+        const now = Math.floor(Date.now() / 1000);
+        const timeSinceLastFarm = now - lastFarmTime;
+        
+        if (timeSinceLastFarm < 30) {
+            btn.disabled = true;
+            const waitTime = 30 - timeSinceLastFarm;
+            document.getElementById('farmInfo').textContent = 'wait ' + waitTime + ' sec';
+            if (farmTimeout) clearTimeout(farmTimeout);
+            farmTimeout = setTimeout(() => updateFarmButton(), 1000);
+        } else {
+            btn.disabled = false;
+            document.getElementById('farmInfo').textContent = '';
+        }
+    }
+    
+    function refreshStats() {
+        const token = getAuthToken();
+        fetch('/game/stats', {
+            headers: {'Authorization': `Bearer ${token}`}
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) {
+                console.error('error: ' + data.error);
+                window.location.href = '/ui/login';
+            } else {
+                location.reload();
+            }
+        })
+        .catch(err => console.error('Error:', err));
+    }
+    
+    function farmCoins() {
+        const token = getAuthToken();
+        const btn = document.getElementById('farmBtn');
+        btn.disabled = true;
+        
+        fetch('/game/farm', {
+            method: 'POST',
+            headers: {'Authorization': `Bearer ${token}`}
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.coins_earned) {
+                lastFarmTime = Math.floor(Date.now() / 1000);
+                document.getElementById('farmInfo').textContent = '+' + data.coins_earned + ' coins';
+                document.getElementById('coinsDisplay').textContent = data.total_coins;
+                updateFarmButton();
+            } else {
+                document.getElementById('farmInfo').textContent = 'wait ' + data.wait_seconds + ' sec';
+                lastFarmTime = Math.floor(Date.now() / 1000) - (30 - data.wait_seconds);
+                updateFarmButton();
+            }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            btn.disabled = false;
+        });
+    }
+    
+    function upgradeStat(stat) {
+        const token = getAuthToken();
+        
+        fetch(`/game/upgrade/${stat}`, {
+            method: 'POST',
+            headers: {'Authorization': `Bearer ${token}`}
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) {
+                console.log('error: ' + data.error);
+            } else {
+                ('upgraded: ' + stat);
+                refreshStats();
+            }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+        });
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        updateFarmButton();
+    });
+</script>
+{% endblock %}

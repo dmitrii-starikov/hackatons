@@ -2,6 +2,12 @@
 
 ![img.png](img.png)
 
+## Categories
+
+![categories1.png](screens/categories1.png)
+![categories2.png](screens/categories2.png)
+![categories3.png](screens/categories3.png)
+
 ## Useful tools:
 - dirsearch
 - strings
@@ -11,6 +17,7 @@
 - Google Earth
 - JSteg
 - exiftool
+- nmap
 
 ## Interesting links
 * https://ctf101.org/forensics/what-is-stegonagraphy/

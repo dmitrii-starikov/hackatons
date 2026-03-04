@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>KITHAT - Cat Farm Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Courier New', monospace;
+            background: #ffffff;
+            color: #000000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .game-container {
+            background: #ffffff;
+            border: 3px solid #000000;
+            max-width: 1000px;
+            width: 100%;
+            display: flex;
+            height: 600px;
+            box-shadow: 8px 8px 0px #000000;
+        }
+        
+        .main-panel {
+            flex: 1;
+            border-right: 3px solid #000000;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+        
+        .cat-panel {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background: #ffffff;
+        }
+        
+        .content {
+            flex: 1;
+        }
+        
+        .footer {
+            text-align: center;
+            font-size: 11px;
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 2px solid #000000;
+        }
+        
+        .footer a {
+            color: #000000;
+            text-decoration: underline;
+            font-weight: bold;
+        }
+        
+        .footer a:hover {
+            background: #000000;
+            color: #ffffff;
+        }
+        
+        h1 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        h2 {
+            font-size: 14px;
+            margin-top: 12px;
+            margin-bottom: 8px;
+            border-bottom: 2px solid #000000;
+            padding-bottom: 3px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        h3 {
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        p {
+            font-size: 11px;
+            margin: 4px 0;
+            line-height: 1.4;
+        }
+        
+        button {
+            background: #fff;
+            border: 2px solid #000;
+            padding: 6px 10px;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 10px;
+            margin: 4px 0;
+            font-weight: bold;
+            display: inline-block;
+        }
+        
+        button:hover {
+            background: #000;
+            color: #fff;
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .admin-flag {
+            border: 3px solid #f00;
+            padding: 10px;
+            margin-bottom: 12px;
+            background: #ffe6e6;
+        }
+        
+        .admin-flag h2 {
+            border-bottom-color: #f00;
+            color: #f00;
+            margin-top: 0;
+        }
+        
+        .admin-flag p {
+            word-break: break-all;
+            font-weight: bold;
+            color: #f00;
+            font-size: 9px;
+        }
+        
+        .ascii-cat {
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            line-height: 1.2;
+            margin: 10px 0;
+            white-space: pre;
+            overflow-x: auto;
+            overflow-y: hidden;
+            word-break: break-word;
+            word-wrap: break-word;
+            max-width: 100%;
+        }
+        
+        .stats-box {
+            border: 2px solid #000;
+            padding: 10px;
+            background: #fff;
+            margin-top: 10px;
+            font-size: 10px;
+        }
+        
+        .stat-line {
+            margin: 3px 0;
+            font-size: 10px;
+        }
+        
+        .stat-line strong {
+            font-weight: bold;
+        }
+        
+        #farmInfo {
+            text-align: center;
+            font-size: 10px;
+            color: #666;
+            margin-top: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="main-panel">
+            <div class="content">
+                {% if error %}
+                    <h1>ERROR</h1>
+                    <p>{{ error }}</p>
+                {% else %}
+                    <h1>{{ username }}'S FARM</h1>
+                    
+                    {% if is_admin and flag %}
+                    <div class="admin-flag">
+                        <h2>ADMIN PANEL</h2>
+                        <p>{{ flag }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <h2>UPGRADES</h2>
+                    <p><strong>STRENGTH</strong> ({{ cat_strength }})</p>
+                    <button onclick="upgradeStat('strength')">+50 COINS</button>
+                    
+                    <p style="margin-top: 8px;"><strong>SPEED</strong> ({{ cat_speed }})</p>
+                    <button onclick="upgradeStat('speed')">+50 COINS</button>
+                    
+                    <p style="margin-top: 8px;"><strong>INTELLIGENCE</strong> ({{ cat_intelligence }})</p>
+                    <button onclick="upgradeStat('intelligence')">+50 COINS</button>
+                    
+                    <p style="margin-top: 8px;"><strong>HAPPINESS</strong> ({{ cat_happiness }})</p>
+                    <button onclick="upgradeStat('happiness')">+30 COINS</button>
+                    
+                    <h2>FARMING</h2>
+                    <p><strong>COINS:</strong> <span id="coinsDisplay">{{ coins }}</span></p>
+                    <button id="farmBtn" onclick="farmCoins()">FARM COINS</button>
+                    <p id="farmInfo"></p>
+                {% endif %}
+            </div>
+            
+            <div class="footer">
+                <a href="{{ url_for('logout_page') }}">LOGOUT</a>
+            </div>
+        </div>
+        
+        <div class="cat-panel">
+            <h2 style="border: none; text-align: center; margin-top: 0; margin-bottom: 10px;">KITTEN</h2>
+            
+            <div class="ascii-cat">
+{{ ascii_cat }}
+            </div>
+            
+            <div class="stats-box">
+                <h3 style="margin: 0 0 6px 0;">STATS</h3>
+                <div class="stat-line">LEVEL: <strong>{{ cat_level }}</strong></div>
+                <div class="stat-line">HAPPINESS: <strong>{{ cat_happiness }}/100</strong></div>
+                <div class="stat-line">STRENGTH: <strong>{{ cat_strength }}</strong></div>
+                <div class="stat-line">SPEED: <strong>{{ cat_speed }}</strong></div>
+                <div class="stat-line">INT: <strong>{{ cat_intelligence }}</strong></div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    let farmTimeout = null;
+    let lastFarmTime = 0;
+    
+    function getAuthToken() {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            const [name, value] = cookie.trim().split('=');
+            if (name === 'token') return value;
+        }
+        return null;
+    }
+    
+    function updateFarmButton() {
+        const btn = document.getElementById('farmBtn');
+        const now = Math.floor(Date.now() / 1000);
+        const timeSinceLastFarm = now - lastFarmTime;
+        
+        if (timeSinceLastFarm < 10) {
+            btn.disabled = true;
+            const waitTime = 10 - timeSinceLastFarm;
+            document.getElementById('farmInfo').textContent = 'wait ' + waitTime + ' sec';
+            if (farmTimeout) clearTimeout(farmTimeout);
+            farmTimeout = setTimeout(() => updateFarmButton(), 1000);
+        } else {
+            btn.disabled = false;
+            document.getElementById('farmInfo').textContent = '';
+        }
+    }
+    
+    function refreshStats() {
+        const token = getAuthToken();
+        fetch('/game/stats', {
+            headers: {'Authorization': `Bearer ${token}`}
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) {
+                console.error('error: ' + data.error);
+                window.location.href = '/ui/login';
+            } else {
+                location.reload();
+            }
+        })
+        .catch(err => console.error('Error:', err));
+    }
+    
+    function farmCoins() {
+        const token = getAuthToken();
+        const btn = document.getElementById('farmBtn');
+        btn.disabled = true;
+        
+        fetch('/game/farm', {
+            method: 'POST',
+            headers: {'Authorization': `Bearer ${token}`}
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.coins_earned) {
+                lastFarmTime = Math.floor(Date.now() / 1000);
+                document.getElementById('farmInfo').textContent = '+' + data.coins_earned + ' coins';
+                document.getElementById('coinsDisplay').textContent = data.total_coins;
+                updateFarmButton();
+            } else {
+                document.getElementById('farmInfo').textContent = 'wait ' + data.wait_seconds + ' sec';
+                lastFarmTime = Math.floor(Date.now() / 1000) - (10 - data.wait_seconds);
+                updateFarmButton();
+            }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            btn.disabled = false;
+        });
+    }
+    
+    function upgradeStat(stat) {
+        const token = getAuthToken();
+        
+        fetch(`/game/upgrade/${stat}`, {
+            method: 'POST',
+            headers: {'Authorization': `Bearer ${token}`}
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) {
+                console.error('error: ' + data.error);
+            } else {
+                console.log('upgraded: ' + stat);
+                refreshStats();
+            }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+        });
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        updateFarmButton();
+    });
+</script>
+</body>
+</html>
